@@ -9,7 +9,7 @@ TOKEN = os.getenv('TOKEN')
 CHANNEL_ID=int(os.getenv("CHANNEL_ID"))
 GUILD_ID=int(os.getenv("SERVER_ID"))
 APPROVAL_CHANNEL_ID=int(os.getenv("APPROVAL_CHANNEL_ID"))
-APPROVER_ID = [417268541121757184, 393404119567826965]
+APPROVER_ROLE_ID = int(os.getenv("APPROVER_ROLE_ID"))
 log_channel_id = int(os.getenv("LOG_CHANNEL_ID"))
 
 intents = discord.Intents.default()
@@ -64,7 +64,7 @@ class ApproveButton(Button):
         self.parent = parent
 
     async def callback(self, interaction: discord.Interaction):
-        if interaction.user.id not in APPROVER_ID:
+        if not any(role.id == APPROVER_ROLE_ID for role in interaction.user.roles):
             await interaction.response.send_message("You are not authorized...", ephemeral=True)
             return
 
@@ -111,8 +111,8 @@ class RejectButton(Button):
         self.parent = parent
 
     async def callback(self, interaction: discord.Interaction):
-        if interaction.user.id not in APPROVER_ID:
-            await interaction.response.send_message("You are not authorized to reject this.", ephemeral=True)
+        if not any(role.id == APPROVER_ROLE_ID for role in interaction.user.roles):
+            await interaction.response.send_message("You are not authorized...", ephemeral=True)
             return
 
         await interaction.response.send_modal(RejectReasonModal(self.parent, interaction.user))
