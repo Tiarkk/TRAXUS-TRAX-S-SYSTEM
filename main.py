@@ -44,10 +44,10 @@ departments = {
     "Asset":["Asset"],
     "Security": ["Security Staff", "Exfiltration Heavy Weapons","Exfiltration Demolition","Exfiltration"],
     "Finance & Logistics": ["Logistics ", "Logistics Maintenance","Logistics Cargo"],
-    "Technical": ["Engineering", "Design","Skunkworks "],
+    "Technical": ["Engineer", "Designer","Skunkworks "],
     "Marketing": ["Communication ", "Communication: propaganda"],
     "Intelligence":["IT","Hygiene","Culinary"],
-    "Staff":["HR-Specialist"]
+    "Staff":["HR"]
 }
 
 async def log_position(message: str):
