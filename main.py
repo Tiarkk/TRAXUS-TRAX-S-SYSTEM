@@ -9,6 +9,7 @@ TOKEN = os.getenv('TOKEN')
 CHANNEL_ID=int(os.getenv("CHANNEL_ID"))
 GUILD_ID=int(os.getenv("SERVER_ID"))
 APPROVAL_CHANNEL_ID=int(os.getenv("APPROVAL_CHANNEL_ID"))
+ONBOARDING_EXCLUSION_ROLE=int(os.getenv("ONBOARDING_EXCLUSION_ROLE_ID"))
 APPROVER_ROLE_ID = int(os.getenv("APPROVER_ROLE_ID"))
 log_channel_id = int(os.getenv("LOG_CHANNEL_ID"))
 
@@ -20,6 +21,14 @@ bot = commands.Bot(command_prefix='/', intents=intents, case_insensitive=True)
 
 @bot.tree.command(name="traxus", description="Start the onboarding process", guild=discord.Object(id=GUILD_ID))
 async def traxus(interaction: discord.Interaction):
+    # Check if user has the exclusion role
+    if any(role.id == ONBOARDING_EXCLUSION_ROLE for role in interaction.user.roles):
+        await interaction.response.send_message(
+            "# Already onboarded.",
+            ephemeral=True
+        )
+        return
+
     view = OnboardingView(interaction.user)
     await interaction.response.send_message(
         "# Welcome, Valued Asset, to TRAXUS Industries. Please select your desired department below",
@@ -219,5 +228,6 @@ class SubmitButton(Button):
         )
 
         await log_position(f"📥 {member.mention} applied for {department} - {job}")
+
 
 bot.run(TOKEN)
