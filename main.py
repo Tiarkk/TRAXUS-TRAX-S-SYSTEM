@@ -22,7 +22,7 @@ bot = commands.Bot(command_prefix='/', intents=intents, case_insensitive=True)
 async def traxus(interaction: discord.Interaction):
     view = OnboardingView(interaction.user)
     await interaction.response.send_message(
-        "Welcome! Please choose your department below:",
+        "# Welcome, Valued Asset, to TRAXUS Industries. Please select your desired department below",
         view=view,
         ephemeral=True
     )
@@ -152,13 +152,13 @@ class OnboardingView(View):
 class DepartmentSelect(Select):
     def __init__(self, parent_view):
         options = [discord.SelectOption(label=dept) for dept in departments.keys()]
-        super().__init__(placeholder="Choose your department...", options=options)
+        super().__init__(placeholder="Choose your department.", options=options)
         self.parent_view = parent_view
 
     async def callback(self, interaction: discord.Interaction):
         self.parent_view.department = self.values[0]
         await interaction.response.send_message(
-            f"Department selected: **{self.parent_view.department}**. Now pick a job.",
+            f"# **{self.parent_view.department}** Department selected. Now pick a job.",
             ephemeral=True,
             view=JobView(self.parent_view)
         )
@@ -173,15 +173,13 @@ class JobView(View):
 class JobSelect(Select):
     def __init__(self, parent_view):
         options = [discord.SelectOption(label=job) for job in departments[parent_view.department]]
-        super().__init__(placeholder="Choose your job...", options=options)
+        super().__init__(placeholder="Choose your job.", options=options)
         self.parent_view = parent_view
 
     async def callback(self, interaction: discord.Interaction):
         self.parent_view.job = self.values[0]
-        await interaction.response.send_message(
-            f"Job selected: **{self.parent_view.job}**. Click Submit when ready.",
-            ephemeral=True
-        )
+        await interaction.response.defer(ephemeral=True)
+
 
 class SubmitButton(Button):
     def __init__(self, parent_view):
