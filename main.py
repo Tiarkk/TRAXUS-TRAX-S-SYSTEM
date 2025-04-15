@@ -41,7 +41,13 @@ async def on_ready():
         await channel.send("# TRAXUS TRAX-S SYSTEM IS NOW ONLINE")
 
 departments = {
-    "RND": ["RND Engineer", "test"]
+    "Asset":["Asset"]
+    "Security": ["Security Staff", "Exfiltration Heavy Weapons","Exfiltration Demolition","Exfiltration"],
+    "Finance & Logistics": ["Logistics ", "Logistics Maintenance","Logistics Cargo"],
+    "Technical": ["Engineering", "Design","Skunkworks "],
+    "Marketing": ["Communication ", "Communication: propaganda"],
+    "Intelligence":["IT","Hygiene","Culinary"],
+    "Staff":["HR-Specialist"]
 }
 
 async def log_position(message: str):
