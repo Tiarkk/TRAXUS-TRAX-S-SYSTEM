@@ -24,4 +24,4 @@ A Discord bot designed to streamline onboarding for your server, with clean slas
 
 ## Contact
 Dc Username: tiark
-Feel free to ask
+- Feel free to ask
