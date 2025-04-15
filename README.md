@@ -22,6 +22,6 @@ A Discord bot designed to streamline onboarding for your server, with clean slas
 - Renaming the User doesnt work yet....
 
 
-##Contact
+## Contact
 Dc Username: tiark
 Feel free to ask
