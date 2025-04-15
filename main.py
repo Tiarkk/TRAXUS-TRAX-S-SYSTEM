@@ -100,7 +100,10 @@ class ApproveButton(Button):
         )
 
         await interaction.message.edit(view=None)
-        await interaction.response.send_message("✅ Application approved.", ephemeral=True)
+        if not interaction.response.is_done():
+            await interaction.response.send_message("✅ Application approved.", ephemeral=True)
+        else:
+            await interaction.followup.send("✅ Application approved.", ephemeral=True)
 
 class RejectButton(Button):
     def __init__(self, parent):
