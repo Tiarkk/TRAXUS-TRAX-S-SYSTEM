@@ -19,17 +19,14 @@ The code is very far from perfect or even good. So please be gentle. However i a
 
 
 ## Current Objectives
-- Renaming the User doesnt work yet....
   - If Name is to long after renaming shorten Name like
       Exfiltration -> Exfil or Exf, 
       Manager -> Mgr, 
       Hygiene -> Hgn
       - If still to long just use `TRAXUS Job Title`
 - notify designated head/lead when someone applies in their divison or department
-- only give designated heads/leads ability to confirm/accept people in their dpt/division
 - PostgreSQL support
 - Weboverlay to manage executives
-- docker 
 
 ## Contact
 Dc Username: tiark
