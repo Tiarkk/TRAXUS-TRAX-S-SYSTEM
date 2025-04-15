@@ -1,7 +1,7 @@
 # TRAXUS TRAX-S SYSTEM 
 
 A Discord bot designed to streamline onboarding for your server, with clean slash commands, dropdowns, and a review workflow for approvals. 
-The code is very far from perfect or even good. So please be gentle. However i am allways eager to learn :)
+The code is very far from perfect or even good. So please be gentle. However i am always eager to learn :)
 ---
 
 ## What It Does
