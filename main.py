@@ -9,7 +9,7 @@ TOKEN = os.getenv('TOKEN')
 CHANNEL_ID=int(os.getenv("CHANNEL_ID"))
 GUILD_ID=int(os.getenv("SERVER_ID"))
 APPROVAL_CHANNEL_ID=int(os.getenv("APPROVAL_CHANNEL_ID"))
-APPROVER_ID = [417268541121757184, 393404119567826965]
+APPROVER_ROLE_ID = int(os.getenv("APPROVER_ROLE_ID"))
 log_channel_id = int(os.getenv("LOG_CHANNEL_ID"))
 
 intents = discord.Intents.default()
@@ -22,7 +22,7 @@ bot = commands.Bot(command_prefix='/', intents=intents, case_insensitive=True)
 async def traxus(interaction: discord.Interaction):
     view = OnboardingView(interaction.user)
     await interaction.response.send_message(
-        "Welcome! Please choose your department below:",
+        "# Welcome, Valued Asset, to TRAXUS Industries. Please select your desired department below",
         view=view,
         ephemeral=True
     )
@@ -41,7 +41,13 @@ async def on_ready():
         await channel.send("# TRAXUS TRAX-S SYSTEM IS NOW ONLINE")
 
 departments = {
-    "RND": ["RND Engineer", "test"]
+    "Asset":["Asset"],
+    "Security": ["Security Staff", "Exfiltration Heavy Weapons","Exfiltration Demolition","Exfiltration"],
+    "Finance & Logistics": ["Logistics ", "Logistics Maintenance","Logistics Cargo"],
+    "Technical": ["Engineer", "Designer","Skunkworks "],
+    "Marketing": ["Communication ", "Communication: propaganda"],
+    "Intelligence":["IT","Hygiene","Culinary"],
+    "Staff":["HR"]
 }
 
 async def log_position(message: str):
@@ -64,7 +70,7 @@ class ApproveButton(Button):
         self.parent = parent
 
     async def callback(self, interaction: discord.Interaction):
-        if interaction.user.id not in APPROVER_ID:
+        if not any(role.id == APPROVER_ROLE_ID for role in interaction.user.roles):
             await interaction.response.send_message("You are not authorized...", ephemeral=True)
             return
 
@@ -100,7 +106,10 @@ class ApproveButton(Button):
         )
 
         await interaction.message.edit(view=None)
-        await interaction.response.send_message("✅ Application approved.", ephemeral=True)
+        if not interaction.response.is_done():
+            await interaction.response.send_message("✅ Application approved.", ephemeral=True)
+        else:
+            await interaction.followup.send("✅ Application approved.", ephemeral=True)
 
 class RejectButton(Button):
     def __init__(self, parent):
@@ -108,8 +117,8 @@ class RejectButton(Button):
         self.parent = parent
 
     async def callback(self, interaction: discord.Interaction):
-        if interaction.user.id not in APPROVER_ID:
-            await interaction.response.send_message("You are not authorized to reject this.", ephemeral=True)
+        if not any(role.id == APPROVER_ROLE_ID for role in interaction.user.roles):
+            await interaction.response.send_message("You are not authorized...", ephemeral=True)
             return
 
         await interaction.response.send_modal(RejectReasonModal(self.parent, interaction.user))
@@ -149,13 +158,13 @@ class OnboardingView(View):
 class DepartmentSelect(Select):
     def __init__(self, parent_view):
         options = [discord.SelectOption(label=dept) for dept in departments.keys()]
-        super().__init__(placeholder="Choose your department...", options=options)
+        super().__init__(placeholder="Choose your department.", options=options)
         self.parent_view = parent_view
 
     async def callback(self, interaction: discord.Interaction):
         self.parent_view.department = self.values[0]
         await interaction.response.send_message(
-            f"Department selected: **{self.parent_view.department}**. Now pick a job.",
+            f"# **{self.parent_view.department}** Department selected. Now pick a job.",
             ephemeral=True,
             view=JobView(self.parent_view)
         )
@@ -170,15 +179,13 @@ class JobView(View):
 class JobSelect(Select):
     def __init__(self, parent_view):
         options = [discord.SelectOption(label=job) for job in departments[parent_view.department]]
-        super().__init__(placeholder="Choose your job...", options=options)
+        super().__init__(placeholder="Choose your job.", options=options)
         self.parent_view = parent_view
 
     async def callback(self, interaction: discord.Interaction):
         self.parent_view.job = self.values[0]
-        await interaction.response.send_message(
-            f"Job selected: **{self.parent_view.job}**. Click Submit when ready.",
-            ephemeral=True
-        )
+        await interaction.response.defer(ephemeral=True)
+
 
 class SubmitButton(Button):
     def __init__(self, parent_view):
