@@ -4,18 +4,28 @@ import os
 from discord import app_commands
 from discord.ext import commands
 from discord.ui import Button, View, Modal, TextInput, Select
+import ast
+
+# Logging setup
+logger = logging.getLogger('discord')
+logger.setLevel(logging.INFO)
 
 ########## These can be updated to match current structure
 
-departments = {
-    "Asset": ["Asset"],
-    "Security": ["Security Staff", "Exfiltration Heavy Weapons", "Exfiltration Demolition", "Exfiltration"],
-    "Finance & Logistics": ["Logistics ", "Logistics Maintenance", "Logistics Cargo"],
-    "Technical": ["Engineer", "Designer", "Skunkworks"],
-    "Marketing": ["Communication", "Communication: propaganda"],
-    "Intelligence": ["IT", "Hygiene", "Culinary"],
-    "Staff": ["HR"]
-}
+#load deps.,teams and job titles
+def load_departments_from_file(filepath="jobs.json"):
+    try:
+        with open(filepath, "r") as file:
+            return json.load(file)
+    except json.JSONDecodeError as e:
+        print(f"Failed to parse departments from file: {e}")
+        return {}
+    except FileNotFoundError:
+        print(f"File not found: {filepath}")
+        return {}
+
+# Dictionary defining departments and their respective jobs
+departments = load_departments_from_file("jobs.json")
 
 shorter_departments = {
     "Asset": {
@@ -59,9 +69,6 @@ class Induction(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-        self.logger = logging.getLogger('discord')
-        self.logger.setLevel(logging.INFO)
-
     async def cog_load(self):
         print("Induction:cog loaded")
 
@@ -85,96 +92,81 @@ class Induction(commands.Cog):
 
         view = OnboardingView(interaction.user)
         await interaction.followup.send(
-            content="# Welcome, Valued Asset, to TRAXUS Industries. Please select your desired department below",
+            content="# Welcome, Valued Asset, to TRAXUS OffWorld Industries. Please select your desired sector below",
             view=view,
             ephemeral=True
         )
 
-
-# Onboarding classes
-class OnboardingView(View):
-    def __init__(self, member):
-        super().__init__(timeout=300)
-        self.member = member
-        self.department = None
-        self.job = None
-        self.add_item(DepartmentSelect(self))
-
-
-class DepartmentSelect(Select):
-    def __init__(self, parent_view):
-        options = [discord.SelectOption(label=dept) for dept in departments.keys()]
-        super().__init__(placeholder="Choose your department.", options=options)
-        self.parent_view = parent_view
-
-    async def callback(self, interaction: discord.Interaction):
-        await interaction.response.defer(ephemeral=True)
-
-        self.parent_view.department = self.values[0]
-        await interaction.followup.send(
-            f"# **{self.parent_view.department}** Department selected. Now pick a job.",
-            ephemeral=True,
-            view=JobView(self.parent_view)
-        )
-
-
-class JobView(View):
-    def __init__(self, parent_view):
-        super().__init__(timeout=300)
-        self.parent_view = parent_view
-        self.add_item(JobSelect(parent_view))
-        self.add_item(SubmitButton(parent_view))
-
-
-class JobSelect(Select):
-    def __init__(self, parent_view):
-        options = [discord.SelectOption(label=job) for job in departments[parent_view.department]]
-        super().__init__(placeholder="Choose your job.", options=options)
-        self.parent_view = parent_view
-
-    async def callback(self, interaction: discord.Interaction):
-        self.parent_view.job = self.values[0]
-        await interaction.response.defer(ephemeral=True)
-
-
-class SubmitButton(Button):
-    def __init__(self, parent_view):
-        super().__init__(label="Submit", style=discord.ButtonStyle.success)
-        self.parent_view = parent_view
-
-
-    async def callback(self, interaction: discord.Interaction):
-        member = self.parent_view.member
-        department = self.parent_view.department
-        job = self.parent_view.job
-
-        channel: discord.TextChannel = interaction.guild.get_channel(int(os.getenv("APPROVAL_CHANNEL_ID")))
-        if not department or not job:
-            await interaction.response.send_message(
-                "❗ Please complete all selections before submitting.",
-                ephemeral=True
-            )
-            return
-
-        embed = discord.Embed(
-            title="New Role Request",
-            description=f"**User:** {member.mention}\n**Department:** {department}\n**Job:** {job}",
-            color=discord.Color.blue()
-        )
-
-        await channel.send(embed=embed, view=ApprovalView(member, department, job))
-
-        log_channel = interaction.guild.get_channel(int(os.getenv("LOG_CHANNEL_ID")))
-        if log_channel:
-            await log_channel.send(f"📥 {member.mention} applied for {department} - {job}")
-
+    """
+    # Command to assign a task based on the user's role
+    @bot.tree.command(
+        name="task",
+        description="Get a task assigned based on your department",
+        guild=discord.Object(id=GUILD_ID),
+    )
+     async def task(interaction: discord.Interaction):
+        # Map department names to their corresponding task files
+        task_files = {
+            "Asset": "tasks/Asset.txt",
+            "Security": "tasks/Security.txt",
+            "Finance & Logistics": "tasks/Finance & Logistics.txt",
+            "Technical": "tasks/Technical.txt",
+            "Marketing": "tasks/Marketing.txt",
+            "Intelligence": "tasks/Intelligence.txt",
+            "Staff": "tasks/Staff.txt",
+        }
+    
+        # Check the user's roles and find a matching department
+        for role in interaction.user.roles:
+            if role.name in task_files:
+                task_file = task_files[role.name]
+                try:
+                    # Read tasks from the file
+                    with open(task_file, "r") as file:
+                        tasks = file.readlines()
+    
+                    with open("tasks/EndTask.txt", "r") as file:
+                        end_tasks = file.readlines()
+    
+                    with open("tasks/Slogans.txt", "r") as file:
+                        slogans = file.readlines()
+    
+                    # Ensure the file is not empty
+                    if not tasks:
+                        await interaction.response.send_message(
+                            f"No tasks available for the {role.name} department. Please contact an admin.",
+                            ephemeral=True,
+                        )
+                        return
+    
+                    # Assign a random task
+                    task = random.choice(tasks).strip()
+                    end_tasks = random.choice(end_tasks).strip()
+                    slogan = random.choice(slogans).strip()
+                    await interaction.response.send_message(
+                        f"**{role.name} TASK PROTOCOL ENGAGED**\n"
+                        f"> {task}\n\n"
+                        f"> {end_tasks}\n\n"
+                        f"> {slogan}\n\n"
+                        f"**TASK ASSIGNED TO:** {interaction.user.mention}\n"
+                    )
+                    return
+                except FileNotFoundError:
+                    await interaction.response.send_message(
+                        f"Task file for the {role.name} department is missing. Please contact an admin.",
+                        ephemeral=True,
+                    )
+                    return
+    
+        # If no matching role is found
         await interaction.response.send_message(
-            "Your request has been submitted for approval!",
-            ephemeral=True
+            "You do not have a role associated with any department.", ephemeral=True
         )
+    
+    """
 
 
-# Approval
+# View for approving or rejecting role requests
 class ApprovalView(View):
     def __init__(self, member, department, job):
         super().__init__(timeout=None)
@@ -185,6 +177,7 @@ class ApprovalView(View):
         self.add_item(RejectButton(self))
 
 
+# Button for approving a role request
 class ApproveButton(Button):
     def __init__(self, parent):
         super().__init__(label="Approve ✅", style=discord.ButtonStyle.success)
@@ -192,6 +185,7 @@ class ApproveButton(Button):
 
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer(thinking=True)
+
         if not any(role.id == int(os.getenv("APPROVER_ROLE_ID")) for role in interaction.user.roles):
             await interaction.followup.send(content="You are not authorized...", ephemeral=True)
             return True
@@ -277,6 +271,7 @@ class ApproveButton(Button):
         print(f"{interaction.message.embeds[0].footer.text}")
 
 
+# Button for rejecting a role request
 class RejectButton(Button):
     def __init__(self, parent):
         super().__init__(label="Reject ❌", style=discord.ButtonStyle.danger)
@@ -291,6 +286,7 @@ class RejectButton(Button):
         await interaction.response.send_message(modal=RejectReasonModal(self.parent, interaction.user))
 
 
+# Modal for entering the rejection reason
 class RejectReasonModal(Modal, title="Rejection Reason"):
     def __init__(self, parent, approver):
         super().__init__()
@@ -326,6 +322,126 @@ class RejectReasonModal(Modal, title="Rejection Reason"):
         interaction.message.embeds[0].set_footer(text=f"❌ Application rejected. {self.reason.value}")
         print(f"{interaction.message.embeds[0].footer.text}")
 
+
+# View for the onboarding process
+class OnboardingView(View):
+    def __init__(self, member):
+        super().__init__(timeout=300)
+        self.member = member
+        self.department = None
+        self.team = None
+        self.job = None
+        self.add_item(DepartmentSelect(self))
+
+
+# Dropdown for selecting a department
+class DepartmentSelect(Select):
+    def __init__(self, parent_view):
+        options = [discord.SelectOption(label=dept) for dept in departments.keys()]
+        super().__init__(placeholder="Choose your Sector.", options=options)
+        self.parent_view = parent_view
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+
+        self.parent_view.department = self.values[0]
+        await interaction.followup.send(
+            f"# **{self.parent_view.department}** Sector selected. Now choose a Department.",
+            ephemeral=True,
+            view=TeamView(self.parent_view)
+        )
+
+
+# View for selecting a Team
+class TeamView(View):
+    def __init__(self, parent_view):
+        super().__init__(timeout=300)
+        self.parent_view = parent_view
+        self.add_item(TeamSelect(parent_view))
+
+class TeamSelect(Select):
+    def __init__(self, parent_view):
+        department = parent_view.department
+        options = [discord.SelectOption(label=team) for team in departments[department].keys()]
+        super().__init__(placeholder="Choose your Department.", options=options)
+        self.parent_view = parent_view
+
+    async def callback(self, interaction: discord.Interaction):
+        self.parent_view.team = self.values[0]
+        await interaction.response.send_message(
+            f"Division **{self.parent_view.team}** selected. Now choose a Division.",
+            ephemeral=True,
+            view=JobView(self.parent_view)
+        )
+
+
+# View for selecting a job and submitting the request
+class JobView(View):
+    def __init__(self, parent_view):
+        super().__init__(timeout=300)
+        self.parent_view = parent_view
+        self.add_item(JobSelect(parent_view))
+        self.add_item(SubmitButton(parent_view))
+
+
+# Dropdown
+class JobSelect(Select):
+    def __init__(self, parent_view):
+        department = parent_view.department
+        team = parent_view.team
+        options = [discord.SelectOption(label=job) for job in departments[department][team]]
+        super().__init__(placeholder="Choose your Division.", options=options)
+        self.parent_view = parent_view
+
+    async def callback(self, interaction: discord.Interaction):
+        self.parent_view.job = self.values[0]
+        await interaction.response.defer(ephemeral=True)
+
+
+# Button for submitting the role request
+class SubmitButton(Button):
+    def __init__(self, parent_view):
+        super().__init__(label="Submit", style=discord.ButtonStyle.success)
+        self.parent_view = parent_view
+
+
+    async def callback(self, interaction: discord.Interaction):
+        member = self.parent_view.member
+        department = self.parent_view.department
+        job = self.parent_view.job
+
+        if not department or not job:
+            await interaction.response.send_message(
+                "❗ Please complete all selections before submitting.", ephemeral=True
+            )
+            return
+
+        embed = discord.Embed(
+            title="New Role Request",
+            description=(
+                f"**User:** {member.mention}\n"
+                f"**Sector:** {department}\n"
+                f"**Department:** {team}\n"
+                f"**Division:** {job}"
+            ),
+            color=discord.Color.blue(),
+        )
+
+        channel: discord.TextChannel = interaction.guild.get_channel(int(os.getenv("APPROVAL_CHANNEL_ID")))
+        await channel.send(embed=embed, view=ApprovalView(member, department, job))
+
+        # Log the submission
+        log_channel = interaction.guild.get_channel(int(os.getenv("LOG_CHANNEL_ID")))
+        if log_channel:
+            await log_channel.send(f"📥 {member.mention} applied for {department} - {job}")
+
+            # Send info to bot logs
+            logging.log(logging.INFO, f"{member.mention} applied for {department} - {job}")
+
+        await interaction.response.send_message(
+            "Your request has been submitted for approval!",
+            ephemeral=True
+        )
 
 async def setup(bot):
     await bot.add_cog(Induction(bot))
