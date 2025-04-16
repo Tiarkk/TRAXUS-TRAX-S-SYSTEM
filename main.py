@@ -42,19 +42,19 @@ async def traxus(interaction: discord.Interaction):
     # Display the onboarding view to the user
     view = OnboardingView(interaction.user)
     await interaction.response.send_message(
-        "# Welcome, Valued Asset, to TRAXUS Industries. Please select your desired department below",
+        "# Welcome, Valued Asset, to TRAXUS OffWorld Industries. Please select your desired sector below",
         view=view,
         ephemeral=True,
     )
 
-
+"""
 # Command to assign a task based on the user's role
 @bot.tree.command(
     name="task",
     description="Get a task assigned based on your department",
     guild=discord.Object(id=GUILD_ID),
 )
-async def task(interaction: discord.Interaction):
+ async def task(interaction: discord.Interaction):
     # Map department names to their corresponding task files
     task_files = {
         "Asset": "tasks/Asset.txt",
@@ -65,8 +65,6 @@ async def task(interaction: discord.Interaction):
         "Intelligence": "tasks/Intelligence.txt",
         "Staff": "tasks/Staff.txt",
     }
-
-
 
     # Check the user's roles and find a matching department
     for role in interaction.user.roles:
@@ -115,7 +113,7 @@ async def task(interaction: discord.Interaction):
         "You do not have a role associated with any department.", ephemeral=True
     )
 
-
+"""
 # Event triggered when the bot is ready
 @bot.event
 async def on_ready():
@@ -297,14 +295,14 @@ class OnboardingView(View):
 class DepartmentSelect(Select):
     def __init__(self, parent_view):
         options = [discord.SelectOption(label=dept) for dept in departments.keys()]
-        super().__init__(placeholder="Choose your department.", options=options)
+        super().__init__(placeholder="Choose your Sector.", options=options)
         self.parent_view = parent_view
 
     async def callback(self, interaction: discord.Interaction):
         # Save the selected department and display the job selection view
         self.parent_view.department = self.values[0]
         await interaction.response.send_message(
-            f"**{self.parent_view.department}** Department selected. Now choose a team.",
+            f"**{self.parent_view.department}** Sector selected. Now choose a Department.",
             ephemeral=True,
             view=TeamView(self.parent_view)
         )
@@ -320,13 +318,13 @@ class TeamSelect(Select):
     def __init__(self, parent_view):
         department = parent_view.department
         options = [discord.SelectOption(label=team) for team in departments[department].keys()]
-        super().__init__(placeholder="Choose your team.", options=options)
+        super().__init__(placeholder="Choose your Division.", options=options)
         self.parent_view = parent_view
 
     async def callback(self, interaction: discord.Interaction):
         self.parent_view.team = self.values[0]
         await interaction.response.send_message(
-            f"Team **{self.parent_view.team}** selected. Now choose a title.",
+            f"Division **{self.parent_view.team}** selected. Now choose a Division.",
             ephemeral=True,
             view=JobView(self.parent_view)
         )
@@ -347,7 +345,7 @@ class JobSelect(Select):
         department = parent_view.department
         team = parent_view.team
         options = [discord.SelectOption(label=job) for job in departments[department][team]]
-        super().__init__(placeholder="Choose your job title.", options=options)
+        super().__init__(placeholder="Choose your Division.", options=options)
         self.parent_view = parent_view
 
     async def callback(self, interaction: discord.Interaction):
@@ -382,9 +380,9 @@ class SubmitButton(Button):
             title="New Role Request",
             description=(
                 f"**User:** {member.mention}\n"
-                f"**Department:** {department}\n"
-                f"**Team:** {team}\n"
-                f"**Job:** {job}"
+                f"**Sector:** {department}\n"
+                f"**Department:** {team}\n"
+                f"**Division:** {job}"
             ),
             color=discord.Color.blue(),
         )
