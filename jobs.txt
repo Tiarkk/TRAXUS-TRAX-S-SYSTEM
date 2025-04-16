@@ -1,0 +1,104 @@
+departments = {
+    "Operations": {
+        "Industrial Resources": [
+            "Mineral Extraction and Refinement",
+            "Heavy Equipment And Vehicle Operation",
+            "Tooling and Contracting"
+        ],
+        "Internal Operations": [
+            "Safety Team",
+            "Orbital Station Operations",
+            "History and Registry"
+        ],
+        "Service Team": [
+            "Customer Services",
+            "Corporate Contracting",
+            "Shareholder Service"
+        ]
+    },
+    "Security": {
+        "Rapid Response": [
+            "Medical Rapid Response",
+            "Runner Rapid Response",
+            "Rapid Exfiltration"
+        ],
+        "Heavy Security": [
+            "Riot Control Team",
+            "Siege and Secure Team",
+            "Explosive Ordnance Employment"
+        ],
+        "Intelligence and Espionage": [
+            "Infiltration Team",
+            "Reconnaissance Team",
+            "Disruption and Damage"
+        ]
+    },
+    "Research & Design": {
+        "Experimental Development": [
+            "Biomata and Worm Testing",
+            "~Locus~ Runner Shell Development",
+            "Prototype Development"
+        ],
+        "Design and Product Development": [
+            "Heavy Tooling Production",
+            "Robotics/Biomata Production",
+            "Hydraulics Tool Production"
+        ],
+        "Research and Testing": [
+            "Soil and Rock Research",
+            "Extra-Terrestrial Biology",
+            "Hygiene and Sanitation"
+        ]
+    },
+    "Logistics": {
+        "Fleet Operations": [
+            "Shipwrighting",
+            "Shipyard Management",
+            "Fleet Chartering"
+        ],
+        "Cargo Operation": [
+            "Port Authority Liaison",
+            "Cargo Handling",
+            "Planetary Transport"
+        ],
+        "Delivery Services": [
+            "Postal Delivery",
+            "Shipment Sorting",
+            "Physical Media Distribution"
+        ]
+    },
+    "Communications": {
+        "Public Relations": [
+            "Propaganda",
+            "Advertisement and Event",
+            "Public Government Legal"
+        ],
+        "Industrial Relations": [
+            "Industrial Diplomacy",
+            "Industrial Legal",
+            "Industry Contracting"
+        ],
+        "Inter-Planetary Relations": [
+            "TRAXUS Runner Engagement",
+            "Satellite Network Relay",
+            "Asset Communication"
+        ]
+    },
+    "Finances": {
+        "Labour and Human Resources": [
+            "Culinary Distribution",
+            "Civil Service Enforcement",
+            "TRAXUS Returns"
+        ],
+        "Compliance and Regulation": [
+            "Financial Analysis",
+            "Legal Administration",
+            "Policy Procedure Team"
+        ],
+        "Expenditure and Sales": [
+            "Sales and Product Profit",
+            "Asset Expenses",
+            "Profit Data"
+        ]
+    }
+}

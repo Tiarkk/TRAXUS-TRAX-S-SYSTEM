@@ -4,6 +4,7 @@ from discord.ui import Button, View, Modal, TextInput, Select
 import os
 from dotenv import load_dotenv
 import random
+import ast
 
 # Load environment variables from .env file
 load_dotenv()
@@ -132,17 +133,22 @@ async def on_ready():
         await channel.send("# TRAXUS TRAX-S SYSTEM IS NOW ONLINE")
 
 
+#load deps.,teams and job titles
+def load_departments_from_file(filepath="jobs.txt"):
+    with open(filepath, "r") as file:
+        content = file.read()
+        try:
+            # Extract only the dictionary part
+            tree = ast.parse(content, mode="exec")
+            for node in tree.body:
+                if isinstance(node, ast.Assign) and isinstance(node.value, (ast.Dict)):
+                    return ast.literal_eval(ast.unparse(node.value))
+        except Exception as e:
+            print(f"Failed to parse departments from file: {e}")
+    return {}
+
 # Dictionary defining departments and their respective jobs
-departments = {
-    "Security": {
-        "Exfiltration": ["Heavy Weapons", "Demolition"],
-        "Surveillance": ["Camera Operator", "Analyst"]
-    },
-    "Technical": {
-        "Engineering": ["Engineer", "Technician"],
-        "Design": ["UI Designer", "UX Specialist"]
-    }
-}
+departments = load_departments_from_file("jobs.txt")
 
 
 # Function to log actions to the log channel
