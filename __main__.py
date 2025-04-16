@@ -1,11 +1,13 @@
 import discord
 import asyncio
+import logging
+import logging.handlers
 from discord.ext import commands
 import os
 from aiohttp import ClientSession
-# from dotenv import load_dotenv
+from dotenv import load_dotenv
 
-# load_dotenv() - Use for local testing (without Docker)
+load_dotenv() # - Use for local testing (without Docker)
 
 class TRAX(commands.Bot):
     def __init__(
@@ -29,6 +31,8 @@ class TRAX(commands.Bot):
 
     async def on_ready(self):
         print(f'Bot is online as {self.user}')
+        logger = logging.getLogger('discord')
+        logger.info(f"<{self.user.name} [{self.user.id}] is ready and online!>")
 
         channel = self.get_channel(self.env_BOT_CHANNEL_ID)
         if channel:
@@ -47,6 +51,27 @@ class TRAX(commands.Bot):
 
 
 async def main():
+    # Logging
+    logger = logging.getLogger('discord')
+    logger.setLevel(logging.INFO)
+
+    if not os.path.exists("../logs"):
+        os.makedirs("../logs")
+
+    handler = logging.handlers.RotatingFileHandler(
+        filename='../logs/discord.log',
+        encoding='utf-8',
+        maxBytes=32 * 1024 * 1024,  # 32 MiB
+        backupCount=5,  # Rotate through 5 files
+    )
+    dt_fmt = '%d-%m-%Y %H:%M:%S'
+    formatter = logging.Formatter('[{asctime}] [{levelname:<8}] {name}: {message}', dt_fmt, style='{')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
+    async def return_logger():
+        return logger
+
     async with ClientSession() as our_client:
         extensions = ["cogs.induction"]
         async with TRAX(

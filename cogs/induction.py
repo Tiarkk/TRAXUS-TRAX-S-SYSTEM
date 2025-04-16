@@ -1,8 +1,11 @@
 import discord
+import logging
 import os
 from discord import app_commands
 from discord.ext import commands
 from discord.ui import Button, View, Modal, TextInput, Select
+
+########## These can be updated to match current structure
 
 departments = {
     "Asset": ["Asset"],
@@ -14,9 +17,50 @@ departments = {
     "Staff": ["HR"]
 }
 
+shorter_departments = {
+    "Asset": {
+        1: ["Asset"],
+        2: ["Asset"],
+        3: ["Asset"]
+    },
+    "Security": {
+        1: ["Security Staff", "Exfiltration Heavy Weapons", "Exfiltration Demolition", "Exfiltration"],
+        2: ["Sec Staff", "Exfil H/Weapons", "Exfil Demo", "Exfil"],
+        3: ["Sec Stf", "Exf HW", "Exf Demo", "Exf"]
+    },
+    "Finance & Logistics": {
+        1: ["Logistics", "Logistics Maintenance", "Logistics Cargo"],
+        2: ["Logs", "Logs Mnt", "Logs Cargo"],
+        3: ["Lg", "Lg Mnt", "Lg C"],
+    },
+    "Technical": {
+        1: ["Engineer", "Designer", "Skunkworks"],
+        2: ["Eng", "Designer", "SkunkWks"],
+        3: ["Eng", "Dsgnr", "Skwks"]
+    },
+    "Marketing": {
+        1: ["Communication", "Communication: Propaganda"],
+        2: ["Comms", "Comms: Props"],
+        3: ["Cms", "Cms: Prp"]
+    },
+    "Intelligence": {
+        1: ["IT", "Hygiene", "Culinary"],
+        2: ["IT", "Hyg", "Cul"],
+        3: ["IT", "Hyg", "Cul"]
+    },
+    "Staff": {
+        1: ["HR"],
+        2: ["HR"],
+        3: ["HR"]
+    }
+}
+
 class Induction(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+
+        self.logger = logging.getLogger('discord')
+        self.logger.setLevel(logging.INFO)
 
     async def cog_load(self):
         print("Induction:cog loaded")
@@ -35,7 +79,7 @@ class Induction(commands.Cog):
         # Check if user has the exclusion role
         if any(role.id == os.getenv("ONBOARDING_EXCLUSION_ROLE") for role in interaction.user.roles):
             await interaction.followup.send(
-                "# Already onboarded.",
+                contents="# Already onboarded.",
                 ephemeral=True)
             return True
 
@@ -149,20 +193,32 @@ class ApproveButton(Button):
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer(thinking=True)
         if not any(role.id == int(os.getenv("APPROVER_ROLE_ID")) for role in interaction.user.roles):
-            await interaction.followup.send("You are not authorized...", ephemeral=True)
+            await interaction.followup.send(content="You are not authorized...", ephemeral=True)
             return True
 
-        try:
-            await self.parent.member.send(
-                f"✅ Your role as **{self.parent.job}** in **{self.parent.department}** has been approved!"
-            )
-        except discord.Forbidden:
-            pass
-
+        # Nickname Assignment goes here :)
         full_nick = f"{self.parent.member.display_name} | TRAXUS {self.parent.job}"
-        short_nick = f"TRAXUS {self.parent.job}"
-        final_nick = full_nick if len(full_nick) <= 32 else short_nick
 
+        if len(full_nick) <= 32:
+            # proceed
+            final_nick = full_nick
+        else:
+            short_name_dict = shorter_departments[self.parent.department]
+            name_index = short_name_dict[1].index(self.parent.job)
+
+            final_nick = f"TRAXUS {self.parent.job}"
+
+            # Iterate through shorter names to see one that fits
+            # Otherwise default to "TRAXUS {job}"
+            for i in range(1,4):
+                if len(f"{self.parent.member.display_name} | TRAXUS {short_name_dict[i][name_index]}") <= 32:
+                    final_nick = f"{self.parent.member.display_name} | TRAXUS {short_name_dict[i][name_index]}"
+                    print(f"{self.parent.member.display_name} | TRAXUS {short_name_dict[i][name_index]} is a suitable size")
+                    break
+                else:
+                    print(f"{short_name_dict[i][name_index]} was too long, trying next one")
+
+        # Edit member nickname
         try:
             await self.parent.member.edit(nick=final_nick)
         except discord.Forbidden:
@@ -179,23 +235,46 @@ class ApproveButton(Button):
                 f" Failed to change nickname: {e}", ephemeral=True
             )
 
-        log_channel = interaction.guild.get_channel(int(os.getenv("LOG_CHANNEL_ID")))
-        if log_channel:
-            await log_channel.send(f"✅ Application approved by {interaction.user.mention} for {self.parent.member.mention}")
+        if final_nick == f"TRAXUS {self.parent.job}":  # name was too long
+            print("Username too long, defaulting to TRAXUS {job}")
 
-        await interaction.response.defer(thinking=False)
+            # Send confirmation message - nickname change was unsuccessful - using default pattern")
+            if not interaction.response.is_done():
+                await interaction.response.send_message(
+                    "✅ Application approved.\n**⚠️ Nickname was too long - Will need adjustment**", ephemeral=True)
+            else:
+                await interaction.followup.send(
+                    "✅ Application approved.\n**⚠️ Nickname was too long - Will need adjustment**", ephemeral=True)
 
-        await interaction.message.edit(view=None, content="✅ Application approved.")
-        if not interaction.response.is_done():
-            await interaction.response.send_message("✅ Application approved.", ephemeral=True)
+            log_channel = interaction.guild.get_channel(int(os.getenv("LOG_CHANNEL_ID")))
+            if log_channel:
+                await log_channel.send(
+                    f"✅ Application approved by {interaction.user.mention} for {self.parent.member.mention}\n**⚠️ Nickname was too long - Will need adjustment**")
+
         else:
-            await interaction.followup.send("✅ Application approved.", ephemeral=True)
+            # Send confirmation message - nickname change was successful
+            await interaction.message.edit(view=None, content="✅ Application approved.")
+            if not interaction.response.is_done():
+                await interaction.response.send_message("✅ Application approved.", ephemeral=True)
+            else:
+                await interaction.followup.send("✅ Application approved.", ephemeral=True)
+
+            log_channel = interaction.guild.get_channel(int(os.getenv("LOG_CHANNEL_ID")))
+            if log_channel:
+                await log_channel.send(
+                    f"✅ Application approved by {interaction.user.mention} for {self.parent.member.mention}")
+
+        # Send applicant a DM
+        try:
+            await self.parent.member.send(
+                f"✅ Your role as **{self.parent.job}** in **{self.parent.department}** has been approved!"
+            )
+        except discord.Forbidden:
+            pass
 
         # Alter existing embed for ACCEPTED status
         interaction.message.embeds[0].set_footer(text=f"✅ Application approved.")
-        print(f"{interaction.message.embeds[0]}")
-
-    # Rejection
+        print(f"{interaction.message.embeds[0].footer.text}")
 
 
 class RejectButton(Button):
@@ -209,7 +288,7 @@ class RejectButton(Button):
             await interaction.response.send_message(f"You are not authorized...", ephemeral=True)
             return True
 
-        await interaction.response.send_modal(RejectReasonModal(self.parent, interaction.user))
+        await interaction.response.send_message(modal=RejectReasonModal(self.parent, interaction.user))
 
 
 class RejectReasonModal(Modal, title="Rejection Reason"):
@@ -221,6 +300,7 @@ class RejectReasonModal(Modal, title="Rejection Reason"):
         self.add_item(self.reason)
 
     async def on_submit(self, interaction: discord.Interaction):
+        await interaction.response.defer(thinking=False)
         try:
             await self.parent.member.send(
                 f"❌ Your application for **{self.parent.job}** in **{self.parent.department}** "
@@ -235,12 +315,16 @@ class RejectReasonModal(Modal, title="Rejection Reason"):
                 f"❌ Application rejected by {self.approver.mention} for {self.parent.member.mention} — Reason: {self.reason.value}"
             )
 
-        await interaction.response.defer(thinking=False)
-        await interaction.message.edit(view=None, content="❌ Application rejected.")
 
+        if not interaction.response.is_done():
+            await interaction.response.send_message("❌ Application rejected.", ephemeral=True)
+        else:
+            await interaction.followup.send(content="❌ Application rejected.", ephemeral=True)
+
+        await interaction.message.edit(view=None, content="❌ Application rejected.")
         # Alter existing embed for REJECTED status
         interaction.message.embeds[0].set_footer(text=f"❌ Application rejected. {self.reason.value}")
-        print(f"{interaction.message.embeds[0]}")
+        print(f"{interaction.message.embeds[0].footer.text}")
 
 
 async def setup(bot):
