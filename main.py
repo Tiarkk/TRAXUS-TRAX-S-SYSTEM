@@ -134,18 +134,14 @@ async def on_ready():
 
 # Dictionary defining departments and their respective jobs
 departments = {
-    "Asset": ["Asset"],
-    "Security": [
-        "Security Staff",
-        "Exfiltration Heavy Weapons",
-        "Exfiltration Demolition",
-        "Exfiltration",
-    ],
-    "Finance & Logistics": ["Logistics ", "Logistics Maintenance", "Logistics Cargo"],
-    "Technical": ["Engineer", "Designer", "Skunkworks "],
-    "Marketing": ["Communication ", "Communication: propaganda"],
-    "Intelligence": ["IT", "Hygiene", "Culinary"],
-    "Staff": ["HR"],
+    "Security": {
+        "Exfiltration": ["Heavy Weapons", "Demolition"],
+        "Surveillance": ["Camera Operator", "Analyst"]
+    },
+    "Technical": {
+        "Engineering": ["Engineer", "Technician"],
+        "Design": ["UI Designer", "UX Specialist"]
+    }
 }
 
 
@@ -283,9 +279,10 @@ class RejectReasonModal(Modal, title="Rejection Reason"):
 # View for the onboarding process
 class OnboardingView(View):
     def __init__(self, member):
-        super().__init__(timeout=300)  # Timeout after 5 minutes
+        super().__init__(timeout=300) #Timeout after 5min
         self.member = member
         self.department = None
+        self.team = None
         self.job = None
         self.add_item(DepartmentSelect(self))
 
@@ -301,29 +298,50 @@ class DepartmentSelect(Select):
         # Save the selected department and display the job selection view
         self.parent_view.department = self.values[0]
         await interaction.response.send_message(
-            f"# **{self.parent_view.department}** Department selected. Now pick a job.",
+            f"**{self.parent_view.department}** Department selected. Now choose a team.",
             ephemeral=True,
-            view=JobView(self.parent_view),
+            view=TeamView(self.parent_view)
+        )
+
+# View for selecting a Team
+class TeamView(View):
+    def __init__(self, parent_view):
+        super().__init__(timeout=300)
+        self.parent_view = parent_view
+        self.add_item(TeamSelect(parent_view))
+
+class TeamSelect(Select):
+    def __init__(self, parent_view):
+        department = parent_view.department
+        options = [discord.SelectOption(label=team) for team in departments[department].keys()]
+        super().__init__(placeholder="Choose your team.", options=options)
+        self.parent_view = parent_view
+
+    async def callback(self, interaction: discord.Interaction):
+        self.parent_view.team = self.values[0]
+        await interaction.response.send_message(
+            f"Team **{self.parent_view.team}** selected. Now choose a title.",
+            ephemeral=True,
+            view=JobView(self.parent_view)
         )
 
 
 # View for selecting a job and submitting the request
 class JobView(View):
     def __init__(self, parent_view):
-        super().__init__(timeout=300)  # Timeout after 5 minutes
+        super().__init__(timeout=300)
         self.parent_view = parent_view
         self.add_item(JobSelect(parent_view))
         self.add_item(SubmitButton(parent_view))
 
 
-# Dropdown for selecting a job
+# Dropdown
 class JobSelect(Select):
     def __init__(self, parent_view):
-        options = [
-            discord.SelectOption(label=job)
-            for job in departments[parent_view.department]
-        ]
-        super().__init__(placeholder="Choose your job.", options=options)
+        department = parent_view.department
+        team = parent_view.team
+        options = [discord.SelectOption(label=job) for job in departments[department][team]]
+        super().__init__(placeholder="Choose your job title.", options=options)
         self.parent_view = parent_view
 
     async def callback(self, interaction: discord.Interaction):
@@ -352,11 +370,19 @@ class SubmitButton(Button):
 
         # Create an embed for the role request and send it to the approval channel
         channel = bot.get_channel(APPROVAL_CHANNEL_ID)
+        team = self.parent_view.team
+
         embed = discord.Embed(
             title="New Role Request",
-            description=f"**User:** {member.mention}\n**Department:** {department}\n**Job:** {job}",
+            description=(
+                f"**User:** {member.mention}\n"
+                f"**Department:** {department}\n"
+                f"**Team:** {team}\n"
+                f"**Job:** {job}"
+            ),
             color=discord.Color.blue(),
         )
+
         await channel.send(embed=embed, view=ApprovalView(member, department, job))
 
         # Notify the user about the submission
