@@ -16,14 +16,15 @@ The code/repository is very far from perfect or even good. So please be gentle. 
       `Display Name | TRAXUS Job Title`  
       (If it’s too long, it falls back to just `TRAXUS Job Title`)
 - Every step (request, approval, rejection) gets logged to a dedicated log channel
+- If Name is to long after renaming shorten Name like
+  - Exfiltration -> Exfil or Exf,
+  - Manager -> Mgr,
+  - Hygiene -> Hgn
+  - If still to long just use `TRAXUS Job Title`
 
 
 ## Current Objectives
-  - If Name is to long after renaming shorten Name like
-      Exfiltration -> Exfil or Exf, 
-      Manager -> Mgr, 
-      Hygiene -> Hgn
-      - If still to long just use `TRAXUS Job Title`
+
   - notify designated head/lead when someone applies in their divison or department
   - PostgreSQL support
   - Weboverlay to manage executives
