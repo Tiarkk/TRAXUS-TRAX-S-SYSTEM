@@ -49,7 +49,7 @@ class Induction(commands.Cog):
 
         view = OnboardingView(interaction.user)
         await interaction.followup.send(
-            content="# Welcome, Valued Asset, to TRAXUS OffWorld Industries. Please select your desired sector below",
+            content="# Welcome, Valued Asset, to Traxus OffWorld Industries. Please select your desired sector below",
             view=view)
 
     """
