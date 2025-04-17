@@ -5,9 +5,9 @@ import logging.handlers
 from discord.ext import commands
 import os
 from aiohttp import ClientSession
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 
-load_dotenv() # - Use for local testing (without Docker)
+# load_dotenv() # - Use for local testing (without Docker)
 
 class TRAX(commands.Bot):
     def __init__(

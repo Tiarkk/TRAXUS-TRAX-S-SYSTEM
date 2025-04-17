@@ -1,104 +1,104 @@
 {
     "Operations": {
-        "Industrial Resources": [
-            "Mineral Extraction and Refinement",
-            "Heavy Equipment And Vehicle Operation",
-            "Tooling and Contracting"
-        ],
-        "Internal Operations": [
-            "Safety Team",
-            "Orbital Station Operations",
-            "History and Registry"
-        ],
-        "Service Team": [
-            "Customer Services",
-            "Corporate Contracting",
-            "Shareholder Service"
-        ]
+        "Industrial Resources": {
+            "1": ["Mineral Extraction and Refinement", "Heavy Equipment And Vehicle Operation", "Tooling and Contracting"],
+            "2": ["Min Ext & Ref", "H/Equip & V/Ops", "Tool & Ctra."],
+            "3": ["ME&R", "HE&VO", "T&C"]
+        },
+        "Internal Operations": {
+            "1": ["Safety Team", "Orbital Station Operations", "History and Registry"],
+            "2": ["Safety Tm.", "Orbital Sta. Ops", "Hist. & Reg."],
+            "3": ["ST", "OSO", "H&R"]
+        },
+        "Service Team": {
+            "1": ["Customer Services", "Corporate Contracting", "Shareholder Service"],
+            "2": ["Cust. Services", "Corp. Ctra.", "S/H Svcs."],
+            "3": ["CS", "CC", "SS"]
+        }
     },
     "Security": {
-        "Rapid Response": [
-            "Medical Rapid Response",
-            "Runner Rapid Response",
-            "Rapid Exfiltration"
-        ],
-        "Heavy Security": [
-            "Riot Control Team",
-            "Siege and Secure Team",
-            "Explosive Ordnance Employment"
-        ],
-        "Intelligence and Espionage": [
-            "Infiltration Team",
-            "Reconnaissance Team",
-            "Disruption and Damage"
-        ]
+        "Rapid Response": {
+            "1": ["Medical Rapid Response", "Runner Rapid Response", "Rapid Exfiltration"],
+            "2": ["Med. R/Rsp.", "Runner R/Rsp.", "Rapid Exf."],
+            "3": ["MRR", "RRR", "REF"]
+        },
+        "Heavy Security": {
+            "1": ["Riot Control Team", "Siege and Secure Team", "Explosive Ordnance Employment"],
+            "2": ["Riot Ctr.T", "Siege & S/T", "Exp. Ord. Emp."],
+            "3": ["RCT", "S&ST", "EOE"]
+        },
+        "Intelligence and Espionage": {
+            "1" : ["Infiltration Team", "Reconnaissance Team", "Disruption and Damage"],
+            "2" : ["Infil. T.", "Recon. T.", "Disruption & Dmg."],
+            "3" : ["IFT", "RT", "D&D"]
+        }
     },
     "Research & Design": {
-        "Experimental Development": [
-            "Biomata and Worm Testing",
-            "~Locus~ Runner Shell Development",
-            "Prototype Development"
-        ],
-        "Design and Product Development": [
-            "Heavy Tooling Production",
-            "Robotics/Biomata Production",
-            "Hydraulics Tool Production"
-        ],
-        "Research and Testing": [
-            "Soil and Rock Research",
-            "Extra-Terrestrial Biology",
-            "Hygiene and Sanitation"
-        ]
+        "Experimental Development": {
+            "1": ["Biomata and Worm Testing", "~Locus~ Runner Shell Development", "Prototype Development"],
+            "2": ["Biom. & Wrm. Testing", "~Locus~ R/S Dev.", "Proto. Dev."],
+            "3": ["B&WT", "LRSD", "PTD"]
+        },
+        "Design and Product Development": {
+            "1": ["Heavy Tooling Production", "Robotics/Biomata Production", "Hydraulics Tool Production"],
+            "2": ["H/Tooling Prod.", "Robotics/Biom. Prod.", "Hyd. Tool Prod."],
+            "3": ["HTP", "RBP", "HTP"]
+        },
+        "Research and Testing": {
+            "1": ["Soil and Rock Research", "Extra-Terrestrial Biology", "Hygiene and Sanitation"],
+            "2": ["Soil & Rck. Res.", "ET Biology", "Hyg. & San."],
+            "3": ["S&RR", "ETB", "H&S"]
+        }
     },
     "Logistics": {
-        "Fleet Operations": [
-            "Shipwrighting",
-            "Shipyard Management",
-            "Fleet Chartering"
-        ],
-        "Cargo Operation": [
-            "Port Authority Liaison",
-            "Cargo Handling",
-            "Planetary Transport"
-        ],
-        "Delivery Services": [
-            "Postal Delivery",
-            "Shipment Sorting",
-            "Physical Media Distribution"
-        ]
+        "Fleet Operations": {
+            "1": ["Shipwrighting", "Shipyard Management", "Fleet Chartering"],
+            "2": ["Shp./Wri.", "Ship/Yrd. Mgt.", "Fleet Chrt."],
+            "3": ["SW", "SM", "FC"]
+        },
+        "Cargo Operation": {
+            "1": ["Port Authority Liaison", "Cargo Handling", "Planetary Transport"],
+            "2": ["Prt. Auth. Liaison", "Cargo Hndl.", "Planetary. Transp."],
+            "3": ["PAL", "CH", "PT"]
+        },
+        "Delivery Services": {
+            "1": ["Postal Delivery", "Shipment Sorting", "Physical Media Distribution"],
+            "2": ["Postal Delv.", "Shp. Sort.", "Phys. Media Distr."],
+            "3": ["PD", "SS", "PMD"]
+        }
     },
     "Communications": {
-        "Public Relations": [
-            "Propaganda",
-            "Advertisement and Event",
-            "Public Government Legal"
-        ],
-        "Industrial Relations": [
-            "Industrial Diplomacy",
-            "Industrial Legal",
-            "Industry Contracting"
-        ],
-        "Inter-Planetary Relations": [
-            "TRAXUS Runner Engagement",
-            "Satellite Network Relay",
-            "Asset Communication"
-        ]
+        "Public Relations": {
+            "1": ["Propaganda", "Advertisement and Event", "Public Government Legal"],
+            "2": ["Propa.", "Ads. & Event", "P/Gov. Legal"],
+            "3": ["PG", "A&E", "PGL"]
+        },
+        "Industrial Relations": {
+            "1": ["Industrial Diplomacy", "Industrial Legal", "Industry Contracting"],
+            "2": ["Ind. Dipl.", "Ind. Legal", "Ind. Ctra."],
+            "3": ["ID", "IL", "IC"]
+        },
+        "Inter-Planetary Relations": {
+            "1": ["TRAXUS Runner Engagement", "Satellite Network Relay", "Asset Communication"],
+            "2": ["TRAXUS Runner Eng.", "Sat./Net. Relay", "Asset Comms."],
+            "3": ["TRE", "SNR", "AC"]
+        }
     },
     "Finances": {
-        "Labour and Human Resources": [
-            "Culinary Distribution",
-            "Civil Service Enforcement",
-            "TRAXUS Returns"
-        ],
-        "Compliance and Regulation": [
-            "Financial Analysis",
-            "Legal Administration",
-            "Policy Procedure Team"
-        ],
-        "Expenditure and Sales": [
-            "Sales and Product Profit",
-            "Asset Expenses",
-            "Profit Data"
-        ]
+        "Labour and Human Resources": {
+            "1": ["Culinary Distribution", "Civil Service Enforcement", "TRAXUS Returns"],
+            "2": ["Cul. Distr.", "Civil Svc. Enf.", "TRAXUS Rts."],
+            "3": ["CD", "CSE", "TR"]
+        },
+        "Compliance and Regulation": {
+            "1": ["Financial Analysis", "Legal Administration", "Policy Procedure Team"],
+            "2": ["Financial Anlys.", "Legal Admin.", "Policy. Proc/T."],
+            "3": ["FA", "LA", "PP"]
+        },
+        "Expenditure and Sales": {
+            "1": ["Sales and Product Profit", "Asset Expenses", "Profit Data"],
+            "2": ["Sales & Pdt. Profit", "Asset Exp.", "Pft. Data"],
+            "3": ["S&PP", "AE", "PDA"]
+        }
     }
 }

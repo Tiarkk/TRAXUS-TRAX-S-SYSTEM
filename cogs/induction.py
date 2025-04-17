@@ -1,10 +1,10 @@
 import discord
 import logging
 import os
+import json
 from discord import app_commands
 from discord.ext import commands
 from discord.ui import Button, View, Modal, TextInput, Select
-import ast
 
 # Logging setup
 logger = logging.getLogger('discord')
@@ -13,7 +13,9 @@ logger.setLevel(logging.INFO)
 ########## These can be updated to match current structure
 
 #load deps.,teams and job titles
-def load_departments_from_file(filepath="jobs.json"):
+def load_departments_from_file():
+    # Navigate one folder back and locate jobs.json
+    filepath = os.path.join(os.path.dirname(__file__), "..", "jobs.json")
     try:
         with open(filepath, "r") as file:
             return json.load(file)
@@ -25,45 +27,7 @@ def load_departments_from_file(filepath="jobs.json"):
         return {}
 
 # Dictionary defining departments and their respective jobs
-departments = load_departments_from_file("jobs.json")
-
-shorter_departments = {
-    "Asset": {
-        1: ["Asset"],
-        2: ["Asset"],
-        3: ["Asset"]
-    },
-    "Security": {
-        1: ["Security Staff", "Exfiltration Heavy Weapons", "Exfiltration Demolition", "Exfiltration"],
-        2: ["Sec Staff", "Exfil H/Weapons", "Exfil Demo", "Exfil"],
-        3: ["Sec Stf", "Exf HW", "Exf Demo", "Exf"]
-    },
-    "Finance & Logistics": {
-        1: ["Logistics", "Logistics Maintenance", "Logistics Cargo"],
-        2: ["Logs", "Logs Mnt", "Logs Cargo"],
-        3: ["Lg", "Lg Mnt", "Lg C"],
-    },
-    "Technical": {
-        1: ["Engineer", "Designer", "Skunkworks"],
-        2: ["Eng", "Designer", "SkunkWks"],
-        3: ["Eng", "Dsgnr", "Skwks"]
-    },
-    "Marketing": {
-        1: ["Communication", "Communication: Propaganda"],
-        2: ["Comms", "Comms: Props"],
-        3: ["Cms", "Cms: Prp"]
-    },
-    "Intelligence": {
-        1: ["IT", "Hygiene", "Culinary"],
-        2: ["IT", "Hyg", "Cul"],
-        3: ["IT", "Hyg", "Cul"]
-    },
-    "Staff": {
-        1: ["HR"],
-        2: ["HR"],
-        3: ["HR"]
-    }
-}
+departments = load_departments_from_file()
 
 class Induction(commands.Cog):
     def __init__(self, bot):
@@ -84,18 +48,14 @@ class Induction(commands.Cog):
         await interaction.response.defer(ephemeral=True)
 
         # Check if user has the exclusion role
-        if any(role.id == os.getenv("ONBOARDING_EXCLUSION_ROLE") for role in interaction.user.roles):
-            await interaction.followup.send(
-                contents="# Already onboarded.",
-                ephemeral=True)
+        if any(role.id == int(os.getenv("ONBOARDING_EXCLUSION_ROLE_ID")) for role in interaction.user.roles):
+            await interaction.followup.send(f"# Already onboarded.")
             return True
 
         view = OnboardingView(interaction.user)
         await interaction.followup.send(
             content="# Welcome, Valued Asset, to TRAXUS OffWorld Industries. Please select your desired sector below",
-            view=view,
-            ephemeral=True
-        )
+            view=view)
 
     """
     # Command to assign a task based on the user's role
@@ -168,10 +128,11 @@ class Induction(commands.Cog):
 
 # View for approving or rejecting role requests
 class ApprovalView(View):
-    def __init__(self, member, department, job):
+    def __init__(self, member, department, team, job):
         super().__init__(timeout=None)
         self.member = member
         self.department = department
+        self.team = team
         self.job = job
         self.add_item(ApproveButton(self))
         self.add_item(RejectButton(self))
@@ -184,10 +145,10 @@ class ApproveButton(Button):
         self.parent = parent
 
     async def callback(self, interaction: discord.Interaction):
-        await interaction.response.defer(thinking=True)
+        await interaction.response.defer(thinking=True, ephemeral=True)
 
         if not any(role.id == int(os.getenv("APPROVER_ROLE_ID")) for role in interaction.user.roles):
-            await interaction.followup.send(content="You are not authorized...", ephemeral=True)
+            await interaction.followup.send(content="You are not authorized...")
             return True
 
         # Nickname Assignment goes here :)
@@ -197,20 +158,20 @@ class ApproveButton(Button):
             # proceed
             final_nick = full_nick
         else:
-            short_name_dict = shorter_departments[self.parent.department]
-            name_index = short_name_dict[1].index(self.parent.job)
+            short_name_dict = departments[self.parent.department][self.parent.team]
+            name_index = short_name_dict["1"].index(self.parent.job)
 
             final_nick = f"TRAXUS {self.parent.job}"
 
             # Iterate through shorter names to see one that fits
             # Otherwise default to "TRAXUS {job}"
             for i in range(1,4):
-                if len(f"{self.parent.member.display_name} | TRAXUS {short_name_dict[i][name_index]}") <= 32:
-                    final_nick = f"{self.parent.member.display_name} | TRAXUS {short_name_dict[i][name_index]}"
-                    print(f"{self.parent.member.display_name} | TRAXUS {short_name_dict[i][name_index]} is a suitable size")
+                if len(f"{self.parent.member.display_name} | TRAXUS {short_name_dict[str(i)][name_index]}") <= 32:
+                    final_nick = f"{self.parent.member.display_name} | TRAXUS {short_name_dict[str(i)][name_index]}"
+                    print(f"{self.parent.member.display_name} | TRAXUS {short_name_dict[str(i)][name_index]} is a suitable size")
                     break
                 else:
-                    print(f"{short_name_dict[i][name_index]} was too long, trying next one")
+                    print(f"{short_name_dict[str(i)][name_index]} was too long, trying next one")
 
         # Edit member nickname
         try:
@@ -222,12 +183,10 @@ class ApproveButton(Button):
                 )
             else:
                 await interaction.followup.send(
-                    "⚠️ I don't have permission to change the user's nickname.", ephemeral=True
-                )
+                    "⚠️ I don't have permission to change the user's nickname.")
         except Exception as e:
             await interaction.followup.send(
-                f" Failed to change nickname: {e}", ephemeral=True
-            )
+                f" Failed to change nickname: {e}")
 
         if final_nick == f"TRAXUS {self.parent.job}":  # name was too long
             print("Username too long, defaulting to TRAXUS {job}")
@@ -238,7 +197,7 @@ class ApproveButton(Button):
                     "✅ Application approved.\n**⚠️ Nickname was too long - Will need adjustment**", ephemeral=True)
             else:
                 await interaction.followup.send(
-                    "✅ Application approved.\n**⚠️ Nickname was too long - Will need adjustment**", ephemeral=True)
+                    content="✅ Application approved.\n**⚠️ Nickname was too long - Will need adjustment**")
 
             log_channel = interaction.guild.get_channel(int(os.getenv("LOG_CHANNEL_ID")))
             if log_channel:
@@ -251,7 +210,7 @@ class ApproveButton(Button):
             if not interaction.response.is_done():
                 await interaction.response.send_message("✅ Application approved.", ephemeral=True)
             else:
-                await interaction.followup.send("✅ Application approved.", ephemeral=True)
+                await interaction.followup.send("✅ Application approved.")
 
             log_channel = interaction.guild.get_channel(int(os.getenv("LOG_CHANNEL_ID")))
             if log_channel:
@@ -278,13 +237,11 @@ class RejectButton(Button):
         self.parent = parent
 
     async def callback(self, interaction: discord.Interaction):
-        await interaction.response.defer(thinking=True)
         if not any(role.id == int(os.getenv("APPROVER_ROLE_ID")) for role in interaction.user.roles):
             await interaction.response.send_message(f"You are not authorized...", ephemeral=True)
             return True
 
-        await interaction.response.send_message(modal=RejectReasonModal(self.parent, interaction.user))
-
+        await interaction.response.send_modal(RejectReasonModal(self.parent, interaction.user))
 
 # Modal for entering the rejection reason
 class RejectReasonModal(Modal, title="Rejection Reason"):
@@ -296,7 +253,7 @@ class RejectReasonModal(Modal, title="Rejection Reason"):
         self.add_item(self.reason)
 
     async def on_submit(self, interaction: discord.Interaction):
-        await interaction.response.defer(thinking=False)
+        await interaction.response.defer(thinking=False, ephemeral=True)
         try:
             await self.parent.member.send(
                 f"❌ Your application for **{self.parent.job}** in **{self.parent.department}** "
@@ -315,7 +272,7 @@ class RejectReasonModal(Modal, title="Rejection Reason"):
         if not interaction.response.is_done():
             await interaction.response.send_message("❌ Application rejected.", ephemeral=True)
         else:
-            await interaction.followup.send(content="❌ Application rejected.", ephemeral=True)
+            await interaction.followup.send(content="❌ Application rejected.")
 
         await interaction.message.edit(view=None, content="❌ Application rejected.")
         # Alter existing embed for REJECTED status
@@ -333,7 +290,6 @@ class OnboardingView(View):
         self.job = None
         self.add_item(DepartmentSelect(self))
 
-
 # Dropdown for selecting a department
 class DepartmentSelect(Select):
     def __init__(self, parent_view):
@@ -342,15 +298,13 @@ class DepartmentSelect(Select):
         self.parent_view = parent_view
 
     async def callback(self, interaction: discord.Interaction):
-        await interaction.response.defer(ephemeral=True)
-
         self.parent_view.department = self.values[0]
-        await interaction.followup.send(
+        await interaction.response.send_message(
             f"# **{self.parent_view.department}** Sector selected. Now choose a Department.",
             ephemeral=True,
-            view=TeamView(self.parent_view)
+            view=TeamView(self.parent_view,
+            )
         )
-
 
 # View for selecting a Team
 class TeamView(View):
@@ -374,7 +328,6 @@ class TeamSelect(Select):
             view=JobView(self.parent_view)
         )
 
-
 # View for selecting a job and submitting the request
 class JobView(View):
     def __init__(self, parent_view):
@@ -383,13 +336,12 @@ class JobView(View):
         self.add_item(JobSelect(parent_view))
         self.add_item(SubmitButton(parent_view))
 
-
 # Dropdown
 class JobSelect(Select):
     def __init__(self, parent_view):
         department = parent_view.department
         team = parent_view.team
-        options = [discord.SelectOption(label=job) for job in departments[department][team]]
+        options = [discord.SelectOption(label=job) for job in departments[department][team]["1"]]
         super().__init__(placeholder="Choose your Division.", options=options)
         self.parent_view = parent_view
 
@@ -397,17 +349,18 @@ class JobSelect(Select):
         self.parent_view.job = self.values[0]
         await interaction.response.defer(ephemeral=True)
 
-
 # Button for submitting the role request
 class SubmitButton(Button):
     def __init__(self, parent_view):
         super().__init__(label="Submit", style=discord.ButtonStyle.success)
         self.parent_view = parent_view
 
-
     async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer(thinking=True, ephemeral=True)
+
         member = self.parent_view.member
         department = self.parent_view.department
+        team = self.parent_view.team
         job = self.parent_view.job
 
         if not department or not job:
@@ -428,7 +381,7 @@ class SubmitButton(Button):
         )
 
         channel: discord.TextChannel = interaction.guild.get_channel(int(os.getenv("APPROVAL_CHANNEL_ID")))
-        await channel.send(embed=embed, view=ApprovalView(member, department, job))
+        await channel.send(embed=embed, view=ApprovalView(member, department, team, job))
 
         # Log the submission
         log_channel = interaction.guild.get_channel(int(os.getenv("LOG_CHANNEL_ID")))
@@ -438,10 +391,7 @@ class SubmitButton(Button):
             # Send info to bot logs
             logging.log(logging.INFO, f"{member.mention} applied for {department} - {job}")
 
-        await interaction.response.send_message(
-            "Your request has been submitted for approval!",
-            ephemeral=True
-        )
+        await interaction.followup.send(content="Your request has been submitted for approval!")
 
 async def setup(bot):
     await bot.add_cog(Induction(bot))
