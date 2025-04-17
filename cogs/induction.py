@@ -36,11 +36,6 @@ class Induction(commands.Cog):
     async def cog_load(self):
         print("Induction:cog loaded")
 
-    async def log_position(self, message: str):
-        channel = self.bot.get_channel(os.getenv("LOG_CHANNEL_ID"))
-        if channel:
-            await channel.send(message)
-
     @app_commands.command(name="traxus", description="Start the onboarding process")
     async def traxus(self, interaction: discord.Interaction):
         # Using this to prevent interaction timeouts
